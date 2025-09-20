@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Plant Identifier</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f4f9f4;
+      margin: 0;
+      padding: 20px;
+    }
+    h1 {
+      text-align: center;
+      color: #2e7d32;
+    }
+    .search-box {
+      max-width: 500px;
+      margin: 20px auto;
+      display: flex;
+      gap: 10px;
+    }
+    input {
+      flex: 1;
+      padding: 10px;
+      border: 2px solid #4caf50;
+      border-radius: 6px;
+      font-size: 16px;
+    }
+    button {
+      padding: 10px 15px;
+      background: #4caf50;
+      border: none;
+      border-radius: 6px;
+      color: white;
+      cursor: pointer;
+      font-size: 16px;
+    }
+    button:hover {
+      background: #388e3c;
+    }
+    .result {
+      margin-top: 30px;
+      max-width: 600px;
+      margin-left: auto;
+      margin-right: auto;
+      padding: 20px;
+      border-radius: 8px;
+      background: #ffffff;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    .not-found {
+      text-align: center;
+      color: red;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <h1>🌿 Plant Identifier</h1>
+
+  <div class="search-box">
+    <input type="text" id="searchInput" placeholder="Enter Common or Scientific Name...">
+    <button onclick="searchPlant()">Search</button>
+  </div>
+
+  <div id="result"></div>
+
+  <script>
+    let plantData = [];
+
+    // Load CSV
+    Papa.parse("Nitesh.csv", {
+      download: true,
+      header: true,
+      skipEmptyLines: true,
+      complete: function(results) {
+        plantData = results.data;
+        console.log("CSV Loaded:", plantData);
+      }
+    });
+
+    function searchPlant() {
+      const query = document.getElementById("searchInput").value.trim().toLowerCase();
+      const resultDiv = document.getElementById("result");
+      resultDiv.innerHTML = "";
+
+      if (!query) {
+        resultDiv.innerHTML = "<p class='not-found'>Please enter a plant name.</p>";
+        return;
+      }
+
+      // Find all matches (partial & case-insensitive)
+      const matches = plantData.filter(row => 
+        (row["Common Name"] && row["Common Name"].toLowerCase().includes(query)) ||
+        (row["Scientific Name"] && row["Scientific Name"].toLowerCase().includes(query))
+      );
+
+      if (matches.length > 0) {
+        matches.forEach(match => {
+          const div = document.createElement("div");
+          div.classList.add("result");
+          div.innerHTML = `
+            <h2>${match["Common Name"] || "N/A"}</h2>
+            <p><strong>Scientific Name:</strong> ${match["Scientific Name"] || "N/A"}</p>
+            <p><strong>Description:</strong> ${match["Description"] || "No description available"}</p>
+          `;
+          resultDiv.appendChild(div);
+        });
+      } else {
+        resultDiv.innerHTML = "<p class='not-found'>No result found.</p>";
+      }
+    }
+  </script>
+</body>
+</html>
